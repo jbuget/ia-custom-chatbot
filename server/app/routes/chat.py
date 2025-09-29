@@ -27,11 +27,10 @@ class ChatResponse(BaseModel):
     assistant_message: ChatMessage
 
 
-def create_chat_router(
+def define_routes(
+    router: APIRouter,
     conversation_store: Dict[str, List[ChatMessage]],
-) -> APIRouter:
-    router = APIRouter(prefix="/api/v1")
-
+) -> None:
     @router.post("/chat", response_model=ChatResponse)
     async def chat(request: ChatRequest) -> ChatResponse:
         prompt = request.prompt.strip()
@@ -62,12 +61,9 @@ def create_chat_router(
             assistant_message=assistant_message,
         )
 
-    return router
-
-
 __all__ = [
     "ChatMessage",
     "ChatRequest",
     "ChatResponse",
-    "create_chat_router",
+    "define_routes",
 ]

@@ -6,7 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routes.chat import ChatMessage, create_chat_router
+from app.routes.chat import ChatMessage, define_routes
+from app.router import router
 
 
 app = FastAPI(title="IA Custom Chatbot API", version="0.1.0")
@@ -22,10 +23,12 @@ app.add_middleware(
 # Stockage en mémoire pour les conversations.
 conversation_store: Dict[str, List[ChatMessage]] = {}
 
-chat_router = create_chat_router(conversation_store)
-app.include_router(chat_router)
+define_routes(router, conversation_store)
+app.include_router(router)
 
 @app.get("/healthcheck")
 async def healthcheck() -> Dict[str, str]:
     """Endpoint de contrôle simple."""
     return {"status": "ok"}
+
+__all__ = ["app"]
