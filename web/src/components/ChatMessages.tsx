@@ -1,5 +1,8 @@
 import { MutableRefObject } from "react";
 
+import { AssistantMessage } from "@/components/AssistantMessage";
+import { UserMessage } from "@/components/UserMessage";
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
@@ -36,24 +39,13 @@ export function ChatMessages({
 
   return (
     <div className={containerClasses}>
-      {messages.map((message) => (
-        <div
-          key={message.id}
-          className={`flex ${
-            message.role === "user" ? "justify-end" : "justify-start"
-          }`}
-        >
-          <div
-            className={`max-w-xs rounded-2xl px-4 py-3 text-sm shadow-md sm:max-w-md ${
-              message.role === "user"
-                ? "bg-sky-500 text-white"
-                : "bg-slate-800 text-slate-100"
-            }`}
-          >
-            {message.content}
-          </div>
-        </div>
-      ))}
+      {messages.map((message) =>
+        message.role === "user" ? (
+          <UserMessage key={message.id} content={message.content} />
+        ) : (
+          <AssistantMessage key={message.id} content={message.content} />
+        )
+      )}
       <div ref={endRef ?? null} />
     </div>
   );

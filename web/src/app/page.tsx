@@ -6,7 +6,22 @@ import { ChatInput } from "@/components/ChatInput";
 import { ChatMessage, ChatMessages } from "@/components/ChatMessages";
 
 const generateFakeResponse = (prompt: string): string => {
-  return `Réponse simulée : je vais m'appuyer sur nos ressources internes pour traiter « ${prompt} ».`; // placeholder for future backend call
+  return [
+    "**Analyse rapide**",
+    `- Demande : ${prompt}`,
+    "- Ressource pressentie : _Base de connaissances interne_",
+    "",
+    "**Actions suggérées**",
+    "1. Vérifier la fiche de procédure associée",
+    "2. Préparer une réponse personnalisée pour l'utilisateur",
+    "",
+    "```sql",
+    "-- Exemple de requête à valider",
+    "SELECT * FROM documents_clef",
+    "WHERE tags @> ARRAY['metier']",
+    "LIMIT 5;",
+    "```",
+  ].join("\n");
 };
 
 export default function Home() {
