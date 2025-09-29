@@ -30,6 +30,7 @@ uvicorn app.main:app --reload
 
 ## Variables d'environnement
 - `NEXT_PUBLIC_API_BASE_URL` (web) : URL de base de l'API (défaut `http://localhost:8000`).
+- Backend : copier `server/.env.example` vers `server/.env` pour configurer Ollama et CORS (`OLLAMA_BASE_URL`, `OLLAMA_MODEL`, etc.).
 
 ## Documentation
 - `AGENTS_GUIDE.md` : brief pour les agents IA et nouveaux contributeurs.

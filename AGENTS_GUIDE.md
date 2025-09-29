@@ -43,11 +43,12 @@ uvicorn app.main:app --reload
 
 ## Variables d'environnement
 - Frontend : `NEXT_PUBLIC_API_BASE_URL` (voir `web/.env.example`).
-- Backend : `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT_SECONDS`.
+- Backend : config centralisée dans `app/config.py`, valeurs surchargeables via `server/.env`
+  (`OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT_SECONDS`, `CORS_ALLOW_*`).
 
 ## Services externes
 - **Ollama** : défaut `http://localhost:11434`, modèle `gpt-oss:20b`.
-- Lancer le serveur avant `uvicorn` (`ollama run gpt-oss-20b --keepalive`).
+- Lancer le serveur avant `uvicorn` (`ollama run gpt-oss:20b --keepalive`).
 
 ## Conventions
 - **Git** : commits conventionnels (type `feat:`, `refactor:`, etc.).

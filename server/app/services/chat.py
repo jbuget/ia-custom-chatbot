@@ -2,15 +2,11 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import Iterable, Mapping
 
 import httpx
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-#OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gpt-oss:20b")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
-OLLAMA_TIMEOUT_SECONDS = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "60"))
+from app.config import settings
 
 class LLMServiceError(RuntimeError):
     """Raised when the LLM service fails to generate a response."""
@@ -22,18 +18,15 @@ async def request_ollama_chat(
 ) -> str:
     """Call the Ollama chat endpoint and return the assistant content."""
 
-    payload = {
-        "model": model or OLLAMA_MODEL,
-        "messages": list(messages),
-    }
+    payload = {"model": model or settings.ollama_model, "messages": list(messages)}
 
     chunks: list[str] = []
 
     try:
-        async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT_SECONDS) as client:
+        async with httpx.AsyncClient(timeout=settings.ollama_timeout_seconds) as client:
             async with client.stream(
                 "POST",
-                f"{OLLAMA_BASE_URL}/api/chat",
+                f"{settings.ollama_base_url}/api/chat",
                 json=payload,
             ) as response:
                 response.raise_for_status()

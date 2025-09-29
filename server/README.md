@@ -12,6 +12,15 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+### Configuration
+
+Les variables d'environnement sont chargées automatiquement depuis `server/.env` (voir `server/.env.example`).
+
+```bash
+cp .env.example .env
+# Puis ajuster les valeurs si nécessaire
+```
+
 ## Endpoints
 
 - `GET /healthcheck` : vérification simple du service.
@@ -35,6 +44,10 @@ La réponse contient l'`conversation_id` (généré si absent) et le message de 
   - `OLLAMA_BASE_URL`
   - `OLLAMA_MODEL`
   - `OLLAMA_TIMEOUT_SECONDS`
+  - `CORS_ALLOW_ORIGINS`
+  - `CORS_ALLOW_METHODS`
+  - `CORS_ALLOW_HEADERS`
+  - `CORS_ALLOW_CREDENTIALS`
 - Assurez-vous que le serveur Ollama est lancé avant `uvicorn`, par exemple :
 
 ```bash
