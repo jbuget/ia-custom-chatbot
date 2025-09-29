@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowUpIcon, SquareIcon } from "lucide-react";
 import { FormEvent, useState } from "react";
 
 type ChatInputProps = {
@@ -7,36 +8,6 @@ type ChatInputProps = {
   isGenerating?: boolean;
   className?: string;
 };
-
-const iconClassName = "h-5 w-5";
-
-const ArrowIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    className={iconClassName}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 19V5m0 0 5 5m-5-5-5 5"
-    />
-  </svg>
-);
-
-const StopIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className={iconClassName}
-  >
-    <rect x="7" y="7" width="10" height="10" rx="2" />
-  </svg>
-);
 
 export function ChatInput({
   onSend,
@@ -85,7 +56,15 @@ export function ChatInput({
           <span className="sr-only">
             {isGenerating ? "Arrêter la génération" : "Envoyer le message"}
           </span>
-          {isGenerating ? <StopIcon /> : <ArrowIcon />}
+          {isGenerating ? (
+            <SquareIcon
+              className="h-5 w-5 fill-current"
+              stroke="currentColor"
+              strokeWidth={0}
+            />
+          ) : (
+            <ArrowUpIcon className="h-5 w-5" />
+          )}
         </button>
       </div>
     </form>
