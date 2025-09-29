@@ -4,7 +4,7 @@ Plateforme en cours de développement pour un assistant conversationnel métier.
 
 ## Architecture
 - **web/** : frontend Next.js (App Router) avec une interface de chat.
-- **server/** : backend FastAPI exposant des endpoints versionnés (`/api/v1`).
+- **server/** : backend FastAPI exposant des endpoints versionnés (`/api/v1`) et se connectant à Ollama.
 
 ## Prérequis rapides
 - Node.js 20+
@@ -25,6 +25,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+
+> ℹ️ Assurez-vous que votre serveur Ollama (modèle `gpt-oss:20b` par défaut) tourne sur `http://localhost:11434` ou ajustez `OLLAMA_BASE_URL`.
 
 ## Variables d'environnement
 - `NEXT_PUBLIC_API_BASE_URL` (web) : URL de base de l'API (défaut `http://localhost:8000`).

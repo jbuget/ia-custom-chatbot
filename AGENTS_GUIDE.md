@@ -4,7 +4,7 @@ Bienvenue ! Ce document résume l'état du projet afin que les agents IA puissen
 
 ## Aperçu du projet
 - **Frontend** : webapp Next.js (App Router) avec Tailwind et composant de chat.
-- **Backend** : FastAPI minimaliste fournissant un endpoint `/api/v1/chat`.
+- **Backend** : FastAPI interfaçant un modèle Ollama (`gpt-oss:20b`) via `/api/v1/chat`.
 - Objectif : assistant conversationnel métier, connecté aux documents internes (future roadmap).
 
 ## Structure principale
@@ -16,12 +16,12 @@ Bienvenue ! Ce document résume l'état du projet afin que les agents IA puissen
 │   └── src/lib/         # Utilitaires (requestChatResponse, etc.)
 └── server/              # Backend FastAPI
     ├── app/main.py      # Entrée principale, routes API (v1)
-    └── app/services/    # Services métier (build_fake_response, ...)
+    └── app/services/    # Services métier (Ollama, etc.)
 ```
 
 ## Flux actuel
 1. La webapp envoie un prompt utilisateur via `requestChatResponse` (`web/src/lib/chat.ts`).
-2. Le backend (`POST /api/v1/chat`) stocke une conversation in-memory et renvoie une réponse simulée (Markdown).
+2. Le backend (`POST /api/v1/chat`) stocke la conversation en mémoire et interroge Ollama pour générer la réponse (Markdown).
 3. Le frontend affiche la conversation (messages côté client) avec rendu Markdown.
 
 ## Commandes utiles
@@ -42,7 +42,12 @@ uvicorn app.main:app --reload
 ```
 
 ## Variables d'environnement
-- `NEXT_PUBLIC_API_BASE_URL` : base URL de l'API (voir `web/.env.example`).
+- Frontend : `NEXT_PUBLIC_API_BASE_URL` (voir `web/.env.example`).
+- Backend : `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT_SECONDS`.
+
+## Services externes
+- **Ollama** : défaut `http://localhost:11434`, modèle `gpt-oss:20b`.
+- Lancer le serveur avant `uvicorn` (`ollama run gpt-oss-20b --keepalive`).
 
 ## Conventions
 - **Git** : commits conventionnels (type `feat:`, `refactor:`, etc.).

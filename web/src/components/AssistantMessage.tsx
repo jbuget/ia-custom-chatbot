@@ -1,3 +1,4 @@
+import { Children, isValidElement } from "react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 
@@ -15,8 +16,25 @@ export function AssistantMessage({
     .join(" ");
 
   const markdownComponents: Components = {
-    p(props) {
-      return <p className="leading-relaxed text-slate-100" {...props} />;
+    p({ children, ...props }) {
+      const childArray = Children.toArray(children);
+      const containsBlock = childArray.some((child) =>
+        isValidElement(child) && child.type === "pre",
+      );
+
+      if (containsBlock) {
+        return (
+          <div className="leading-relaxed text-slate-100" {...props}>
+            {children}
+          </div>
+        );
+      }
+
+      return (
+        <p className="leading-relaxed text-slate-100" {...props}>
+          {children}
+        </p>
+      );
     },
     strong(props) {
       return <strong className="font-semibold text-slate-50" {...props} />;
