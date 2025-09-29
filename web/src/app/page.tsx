@@ -11,6 +11,7 @@ const generateFakeResponse = (prompt: string): string => {
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function Home() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    setIsGenerating(true);
 
     const assistantMessage: ChatMessage = {
       id: `${Date.now()}-assistant`,
@@ -34,6 +36,7 @@ export default function Home() {
 
     window.setTimeout(() => {
       setMessages((prev) => [...prev, assistantMessage]);
+      setIsGenerating(false);
     }, 500);
   };
 
@@ -50,7 +53,7 @@ export default function Home() {
         <section className="flex flex-1 flex-col rounded-3xl bg-slate-950/60 px-6 py-6 shadow-lg ring-1 ring-slate-800">
           <ChatMessages messages={messages} endRef={endOfMessagesRef} />
 
-          <ChatInput onSend={handleSendMessage} />
+          <ChatInput onSend={handleSendMessage} isGenerating={isGenerating} />
         </section>
       </main>
     </div>
