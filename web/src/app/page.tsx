@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-import { ChatInput } from "@/components/ChatInput";
-import { ChatMessage, ChatMessages } from "@/components/ChatMessages";
+import { ChatConversation } from "@/components/ChatConversation";
 
 const generateFakeResponse = (prompt: string): string => {
   return [
@@ -25,36 +22,6 @@ const generateFakeResponse = (prompt: string): string => {
 };
 
 export default function Home() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSendMessage = (message: string) => {
-    const userMessage: ChatMessage = {
-      id: `${Date.now()}-user`,
-      role: "user",
-      content: message,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsGenerating(true);
-
-    const assistantMessage: ChatMessage = {
-      id: `${Date.now()}-assistant`,
-      role: "assistant",
-      content: generateFakeResponse(message),
-    };
-
-    window.setTimeout(() => {
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsGenerating(false);
-    }, 500);
-  };
-
   return (
     <div className="min-h-screen bg-slate-900 text-slate-50">
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-10">
@@ -65,11 +32,7 @@ export default function Home() {
           </p>
         </header>
 
-        <section className="flex flex-1 flex-col rounded-3xl bg-slate-950/60 px-6 py-6 shadow-lg ring-1 ring-slate-800">
-          <ChatMessages messages={messages} endRef={endOfMessagesRef} />
-
-          <ChatInput onSend={handleSendMessage} isGenerating={isGenerating} />
-        </section>
+        <ChatConversation generateResponse={generateFakeResponse} />
       </main>
     </div>
   );
