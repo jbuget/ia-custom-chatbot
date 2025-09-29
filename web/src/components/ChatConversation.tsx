@@ -5,21 +5,34 @@ import { useEffect, useRef, useState } from "react";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessage, ChatMessages } from "@/components/ChatMessages";
 
+type GenerateResponseArgs = {
+  prompt: string;
+  conversationId?: string;
+};
+
+type GenerateResponseResult = {
+  conversationId: string;
+  content: string;
+};
+
 type ChatConversationProps = {
-  generateResponse: (prompt: string) => string | Promise<string>;
+  generateResponse: (args: GenerateResponseArgs) => Promise<GenerateResponseResult>;
   initialMessages?: ChatMessage[];
-  responseDelayMs?: number;
+  initialConversationId?: string;
   className?: string;
 };
 
 export function ChatConversation({
   generateResponse,
   initialMessages = [],
-  responseDelayMs = 500,
+  initialConversationId,
   className,
 }: ChatConversationProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>(
+    initialConversationId,
+  );
   const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -31,30 +44,39 @@ export function ChatConversation({
       return;
     }
 
-    const timestamp = Date.now();
-
     const userMessage: ChatMessage = {
-      id: `${timestamp}-user`,
+      id: `${crypto.randomUUID?.() ?? Date.now()}-user`,
       role: "user",
       content: message,
     };
-    setMessages((prev) => [...prev, userMessage]);
+
     setIsGenerating(true);
+    setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const assistantContent = await Promise.resolve(generateResponse(message));
+      const { content, conversationId: updatedConversationId } =
+        await generateResponse({ prompt: message, conversationId });
+
       const assistantMessage: ChatMessage = {
-        id: `${Date.now()}-assistant`,
+        id: `${crypto.randomUUID?.() ?? Date.now()}-assistant`,
         role: "assistant",
-        content: assistantContent,
+        content,
       };
 
-      window.setTimeout(() => {
-        setMessages((prev) => [...prev, assistantMessage]);
-        setIsGenerating(false);
-      }, responseDelayMs);
+      setConversationId(updatedConversationId);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Unable to generate assistant response", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${crypto.randomUUID?.() ?? Date.now()}-error`,
+          role: "assistant",
+          content:
+            "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer.",
+        },
+      ]);
+    } finally {
       setIsGenerating(false);
     }
   };

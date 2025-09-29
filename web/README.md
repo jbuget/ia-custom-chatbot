@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Backend API
+
+The chat UI expects a FastAPI backend running locally (see `server/`). Set the API base URL via environment variable:
+
+```
+cp .env.example .env.local
+```
+
+Keep the default value (`http://localhost:8000`) or adjust to match your deployment.
+
 ## Getting Started
 
 First, run the development server:

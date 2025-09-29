@@ -1,7 +1,7 @@
 "use client";
 
 import { ChatConversation } from "@/components/ChatConversation";
-import { generateFakeResponse } from "@/lib/chat";
+import { requestChatResponse } from "@/lib/chat";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
           </p>
         </header>
 
-        <ChatConversation generateResponse={generateFakeResponse} />
+        <ChatConversation generateResponse={requestChatResponse} />
       </main>
     </div>
   );
