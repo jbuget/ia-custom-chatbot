@@ -12,13 +12,10 @@ class LLMServiceError(RuntimeError):
     """Raised when the LLM service fails to generate a response."""
 
 
-async def request_ollama_chat(
-    messages: Iterable[Mapping[str, str]],
-    model: str | None = None,
-) -> str:
+async def request_ollama_chat(messages: Iterable[Mapping[str, str]]) -> str:
     """Call the Ollama chat endpoint and return the assistant content."""
 
-    payload = {"model": model or settings.ollama_model, "messages": list(messages)}
+    payload = {"model": settings.ollama_model, "messages": list(messages)}
 
     chunks: list[str] = []
 
