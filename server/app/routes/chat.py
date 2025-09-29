@@ -27,7 +27,7 @@ class ChatResponse(BaseModel):
     assistant_message: ChatMessage
 
 
-def define_routes(
+def define_chat_routes(
     router: APIRouter,
     conversation_store: Dict[str, List[ChatMessage]],
 ) -> None:
@@ -65,5 +65,5 @@ __all__ = [
     "ChatMessage",
     "ChatRequest",
     "ChatResponse",
-    "define_routes",
+    "define_chat_routes",
 ]
