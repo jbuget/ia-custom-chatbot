@@ -77,18 +77,35 @@ export async function requestChatResponse({
 
   const documents = Array.isArray(payload.documents) ? payload.documents : [];
 
-  const citations = documents
-    .map((doc) => {
-      const title = doc.title?.trim() || "Sans titre";
-      const urlPart = doc.url ? ` (${doc.url})` : "";
-      const excerpt = doc.excerpt?.trim() || "Contenu indisponible";
-      return `- [Doc${doc.rank}] ${title}${urlPart}\n  > ${excerpt}`;
-    })
-    .join("\n\n");
+  const citationBlocks = documents.map((doc) => {
+    const title = doc.title?.trim() || "Sans titre";
+    const url = doc.url?.trim();
+    const excerpt = doc.excerpt?.trim() || "Contenu indisponible";
 
-  const formattedAnswer = citations
-    ? `${payload.answer}\n\n**Sources**\n${citations}`
-    : payload.answer;
+    const headerParts = [`- **[Doc${doc.rank}] ${title}**`];
+    if (url) {
+      headerParts[0] += ` ([lien](${url}))`;
+    }
+
+    const similarity = Number.isFinite(doc.similarity)
+      ? ` (${(doc.similarity * 100).toFixed(1)} % de pertinence)`
+      : "";
+
+    headerParts[0] += similarity;
+
+    return [headerParts[0], `  > ${excerpt}`].join("\n");
+  });
+
+  const formattedAnswer = citationBlocks.length
+    ? [
+        payload.answer.trim(),
+        "",
+        "---",
+        "",
+        "#### Documents cités",
+        ...citationBlocks,
+      ].join("\n")
+    : payload.answer.trim();
 
   return {
     conversationId: conversationId ?? "ask-session",
