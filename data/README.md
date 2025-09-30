@@ -19,6 +19,7 @@
   - Réinitialise la table `topics` (TRUNCATE + RESTART IDENTITY) avant l'insertion.
   - Modèle d'embedding configurable avec `OLLAMA_EMBED_MODEL` (défaut `nomic-embed-text`). Vous pouvez fixer `EMBEDDING_DIM` pour forcer la taille attendue (sinon la première réponse fait foi, vérifiez qu'elle correspond à la définition de la colonne `embedding`).
   - Se base sur `data/topics.json`.
+  - Remarque : `topics.json` regroupe des fiches issues du site *La Communauté de l'inclusion*, un forum destiné aux professionnels de l'insertion socio-professionnelle en France. Ce corpus métier, riche en vocabulaire spécialisé, est idéal pour illustrer des cas de recherche sémantique assistée par IA.
 
 ### Charger les données
 - Vérifiez qu'Ollama est démarré et accessible (défaut `http://localhost:11434`).
