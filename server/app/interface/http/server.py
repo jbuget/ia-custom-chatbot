@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.router import router
+from app.interface.http.router import router
 
 
 app = FastAPI(title="IA Custom Chatbot API", version="0.1.0")

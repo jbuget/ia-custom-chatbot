@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Dict, List
 
 from fastapi import APIRouter
-from app.routes.chat import ChatMessage, define_chat_routes
+from app.interface.http.routes.chat import ChatMessage, define_chat_routes
 
 
 router = APIRouter(prefix="/api/v1")
