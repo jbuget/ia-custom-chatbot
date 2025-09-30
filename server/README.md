@@ -23,8 +23,9 @@ cp .env.example .env
 
 ## Endpoints
 
-- `GET /healthcheck` : vérification simple du service.
+- `GET /api/v1/healthcheck` : vérification simple du service.
 - `POST /api/v1/chat` : ajoute les messages fournis à une conversation et retourne la réponse générée par Ollama.
+- `POST /api/v1/ask` : interprète la question, effectue une recherche vectorielle dans PostgreSQL (pgvector) et répond en citant les documents pertinents.
 
 ### Exemple de requête `/chat`
 
@@ -44,6 +45,12 @@ La réponse contient l'`conversation_id` (généré si absent) et le message de 
   - `OLLAMA_BASE_URL`
   - `OLLAMA_MODEL`
   - `OLLAMA_TIMEOUT_SECONDS`
+  - `DATABASE_URL`
+  - `EMBEDDING_MODEL`
+  - `EMBEDDING_TIMEOUT_SECONDS`
+  - `EMBEDDING_EXPECTED_DIMENSIONS`
+  - `RETRIEVER_TOP_K`
+  - `RETRIEVER_CONTEXT_CHAR_LIMIT`
   - `CORS_ALLOW_ORIGINS`
   - `CORS_ALLOW_METHODS`
   - `CORS_ALLOW_HEADERS`

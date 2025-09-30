@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     ollama_model: str = "gpt-oss:20b"
     ollama_timeout_seconds: float = 60.0
 
+    database_url: str = "postgresql://admin:password@localhost:5432/chatbot"
+
+    embedding_model: str = "nomic-embed-text"
+    embedding_timeout_seconds: float = 60.0
+    embedding_expected_dimensions: int = 768
+
+    retriever_top_k: int = 3
+    retriever_context_char_limit: int = 2000
+
     cors_allow_origins: List[str] = _default_cors_origins()
     cors_allow_credentials: bool = True
     cors_allow_methods: List[str] = ["*"]

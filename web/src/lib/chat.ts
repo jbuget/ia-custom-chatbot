@@ -35,14 +35,13 @@ export async function requestChatResponse({
 }: RequestChatResponseArgs): Promise<RequestChatResponseResult> {
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_API_BASE_URL;
 
-  const response = await fetch(`${baseUrl}/api/v1/chat`, {
+  const response = await fetch(`${baseUrl}/api/v1/ask`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      prompt,
-      conversation_id: conversationId ?? null,
+      question: prompt,
     }),
   });
 
@@ -62,21 +61,37 @@ export async function requestChatResponse({
   }
 
   const payload = (await response.json()) as {
-    conversation_id: string;
-    assistant_message?: { content: string };
+    answer?: string;
+    documents?: Array<{
+      rank: number;
+      title?: string | null;
+      url?: string | null;
+      excerpt: string;
+      similarity: number;
+    }>;
   };
 
-  if (!payload.conversation_id) {
-    throw new Error("API response missing conversation identifier");
+  if (!payload.answer) {
+    throw new Error("API response missing assistant answer");
   }
 
-  const content = payload.assistant_message?.content;
-  if (!content) {
-    throw new Error("API response missing assistant content");
-  }
+  const documents = Array.isArray(payload.documents) ? payload.documents : [];
+
+  const citations = documents
+    .map((doc) => {
+      const title = doc.title?.trim() || "Sans titre";
+      const urlPart = doc.url ? ` (${doc.url})` : "";
+      const excerpt = doc.excerpt?.trim() || "Contenu indisponible";
+      return `- [Doc${doc.rank}] ${title}${urlPart}\n  > ${excerpt}`;
+    })
+    .join("\n\n");
+
+  const formattedAnswer = citations
+    ? `${payload.answer}\n\n**Sources**\n${citations}`
+    : payload.answer;
 
   return {
-    conversationId: payload.conversation_id,
-    content,
+    conversationId: conversationId ?? "ask-session",
+    content: formattedAnswer,
   };
 }
