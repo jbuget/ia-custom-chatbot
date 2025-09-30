@@ -10,6 +10,7 @@ from app.infrastructure.database import get_pool, to_db_vector
 async def query_similar_topics(
     embedding: Sequence[float],
     limit: int,
+    query_text: str | None = None,
 ) -> List[Mapping[str, object]]:
     """Return the closest topics to a query embedding ordered by distance."""
 
@@ -35,6 +36,34 @@ async def query_similar_topics(
                 (vector, vector, limit),
             )
             rows = await cursor.fetchall()
+
+            if rows:
+                return rows
+
+            if query_text:
+                await cursor.execute(
+                    """
+                    SELECT
+                        id,
+                        title,
+                        subtitle,
+                        content,
+                        url,
+                        0.0 AS similarity
+                    FROM topics
+                    WHERE to_tsvector(
+                        'french',
+                        coalesce(title, '') || ' ' || coalesce(subtitle, '') || ' ' || coalesce(content, '')
+                    ) @@ plainto_tsquery('french', %s)
+                    ORDER BY ts_rank_cd(
+                        to_tsvector('french', coalesce(title, '') || ' ' || coalesce(subtitle, '') || ' ' || coalesce(content, '')),
+                        plainto_tsquery('french', %s)
+                    ) DESC
+                    LIMIT %s
+                    """,
+                    (query_text, query_text, limit),
+                )
+                rows = await cursor.fetchall()
 
     return rows
 

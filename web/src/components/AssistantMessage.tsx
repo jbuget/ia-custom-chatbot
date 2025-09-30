@@ -1,6 +1,6 @@
-import { Children, isValidElement } from "react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type AssistantMessageProps = {
   content: string;
@@ -16,50 +16,6 @@ export function AssistantMessage({
     .join(" ");
 
   const markdownComponents: Components = {
-    p({ children, ...props }) {
-      const childArray = Children.toArray(children);
-      const containsBlock = childArray.some((child) =>
-        isValidElement(child) && child.type === "pre",
-      );
-
-      if (containsBlock) {
-        return (
-          <div className="leading-relaxed text-slate-100" {...props}>
-            {children}
-          </div>
-        );
-      }
-
-      return (
-        <p className="leading-relaxed text-slate-100" {...props}>
-          {children}
-        </p>
-      );
-    },
-    strong(props) {
-      return <strong className="font-semibold text-slate-50" {...props} />;
-    },
-    em(props) {
-      return <em className="italic text-slate-200" {...props} />;
-    },
-    ul(props) {
-      return <ul className="list-disc space-y-1 pl-5 text-slate-100" {...props} />;
-    },
-    ol(props) {
-      return <ol className="list-decimal space-y-1 pl-5 text-slate-100" {...props} />;
-    },
-    li(props) {
-      return <li className="leading-relaxed" {...props} />;
-    },
-    h1(props) {
-      return <h1 className="text-lg font-semibold text-slate-50" {...props} />;
-    },
-    h2(props) {
-      return <h2 className="text-base font-semibold text-slate-50" {...props} />;
-    },
-    h3(props) {
-      return <h3 className="text-sm font-semibold text-slate-100" {...props} />;
-    },
     code({ inline, className: codeClassName, children, ...props }) {
       if (inline) {
         return (
@@ -80,13 +36,65 @@ export function AssistantMessage({
         </pre>
       );
     },
+    table({ className: tableClassName, ...props }) {
+      const classes = [
+        "w-full border-collapse overflow-hidden rounded-lg border border-slate-700 text-sm",
+        tableClassName,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      return <table className={classes} {...props} />;
+    },
+    thead({ className: theadClassName, ...props }) {
+      const classes = ["bg-slate-800", theadClassName].filter(Boolean).join(" ");
+      return <thead className={classes} {...props} />;
+    },
+    tbody({ className: tbodyClassName, ...props }) {
+      const classes = ["divide-y divide-slate-800", tbodyClassName]
+        .filter(Boolean)
+        .join(" ");
+      return <tbody className={classes} {...props} />;
+    },
+    tr({ className: trClassName, ...props }) {
+      const classes = [
+        "odd:bg-slate-900/50 even:bg-slate-900/30",
+        trClassName,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return <tr className={classes} {...props} />;
+    },
+    th({ className: thClassName, ...props }) {
+      const classes = [
+        "border border-slate-700 px-3 py-2 text-left font-semibold text-slate-50",
+        thClassName,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return <th className={classes} {...props} />;
+    },
+    td({ className: tdClassName, ...props }) {
+      const classes = [
+        "border border-slate-800 px-3 py-2 align-top text-slate-100",
+        tdClassName,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return <td className={classes} {...props} />;
+    },
   };
 
   return (
     <div className={rootClasses}>
       <div className="w-full rounded-2xl bg-slate-800 px-4 py-3 text-sm text-slate-100 shadow-md">
         <div className="space-y-3 leading-relaxed break-words text-slate-100">
-          <ReactMarkdown components={markdownComponents}>{content}</ReactMarkdown>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={markdownComponents}
+          >
+            {content}
+          </ReactMarkdown>
         </div>
       </div>
     </div>
