@@ -25,9 +25,10 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql://admin:password@localhost:5432/chatbot"
 
-    embedding_model: str = "nomic-embed-text"
-    embedding_timeout_seconds: float = 60.0
+    embedding_model: str = "nomic-ai/nomic-embed-text-v2"
     embedding_expected_dimensions: int = 768
+    embedding_device: str = "cpu"
+    embedding_trust_remote_code: bool = False
 
     retriever_top_k: int = 3
     retriever_context_char_limit: int = 2000

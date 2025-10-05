@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import math
-from typing import Iterable, List
+from typing import List
 
-import httpx
+from sentence_transformers import SentenceTransformer
 
 from app.config import settings
 
@@ -12,57 +13,64 @@ class EmbeddingServiceError(RuntimeError):
     """Raised when the embedding service fails to generate a vector."""
 
 
+_MODEL: SentenceTransformer | None = None
+_MODEL_LOCK = asyncio.Lock()
+
+
+async def _get_model() -> SentenceTransformer:
+    """Return a singleton SentenceTransformer instance."""
+
+    global _MODEL
+
+    if _MODEL is None:
+        async with _MODEL_LOCK:
+            if _MODEL is None:
+                try:
+                    _MODEL = await asyncio.to_thread(
+                        SentenceTransformer,
+                        settings.embedding_model,
+                        device=settings.embedding_device,
+                        trust_remote_code=settings.embedding_trust_remote_code,
+                    )
+                except Exception as exc:  # pragma: no cover - defensive guard
+                    raise EmbeddingServiceError(
+                        f"Unable to load embedding model '{settings.embedding_model}'"
+                    ) from exc
+
+    return _MODEL
+
+
 async def request_embedding(text: str) -> List[float]:
     """Request an embedding vector for the provided text."""
 
-    payload = {"model": settings.embedding_model, "prompt": text}
+    model = await _get_model()
 
     try:
-        async with httpx.AsyncClient(timeout=settings.embedding_timeout_seconds) as client:
-            response = await client.post(
-                f"{settings.ollama_base_url}/api/embeddings",
-                json=payload,
-            )
-            response.raise_for_status()
-    except httpx.HTTPStatusError as exc:
-        detail = exc.response.text
-        raise EmbeddingServiceError(
-            f"Embedding request failed with status {exc.response.status_code}: {detail}"
-        ) from exc
-    except httpx.HTTPError as exc:
-        raise EmbeddingServiceError("Unable to contact embedding service") from exc
-
-    try:
-        data = response.json()
-    except ValueError as exc:  # pragma: no cover - defensive guard
-        raise EmbeddingServiceError("Failed to decode embedding payload") from exc
-
-    embedding = data.get("embedding")
-    if not isinstance(embedding, Iterable):
-        raise EmbeddingServiceError("Embedding response missing 'embedding' array")
-
-    vector: List[float] = []
-    for value in embedding:
-        try:
-            number = float(value)
-        except (TypeError, ValueError) as exc:
-            raise EmbeddingServiceError("Embedding contains non-numeric values") from exc
-
-        if not math.isfinite(number):
-            raise EmbeddingServiceError("Embedding contains non-finite values")
-
-        vector.append(number)
-
-    expected_dim = settings.embedding_expected_dimensions
-    if expected_dim > 0 and len(vector) != expected_dim:
-        raise EmbeddingServiceError(
-            f"Embedding dimension {len(vector)} does not match expected {expected_dim}"
+        vector = await asyncio.to_thread(
+            model.encode,
+            text,
+            show_progress_bar=False,
+            convert_to_numpy=True,
+            normalize_embeddings=False,
         )
+    except Exception as exc:  # pragma: no cover - defensive guard
+        raise EmbeddingServiceError("Failed to compute embedding") from exc
 
-    if not vector:
+    values = vector.tolist()
+
+    if not values:
         raise EmbeddingServiceError("Embedding response is empty")
 
-    return vector
+    if not all(math.isfinite(float(value)) for value in values):
+        raise EmbeddingServiceError("Embedding contains non-finite values")
+
+    expected_dim = settings.embedding_expected_dimensions
+    if expected_dim > 0 and len(values) != expected_dim:
+        raise EmbeddingServiceError(
+            f"Embedding dimension {len(values)} does not match expected {expected_dim}"
+        )
+
+    return [float(value) for value in values]
 
 
 __all__ = ["EmbeddingServiceError", "request_embedding"]

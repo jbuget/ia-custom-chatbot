@@ -1,4 +1,4 @@
-"""Load forum topics into PostgreSQL and generate embeddings via Ollama."""
+"""Load forum topics into PostgreSQL and generate embeddings via sentence-transformers."""
 
 from __future__ import annotations
 
@@ -7,8 +7,6 @@ import math
 import os
 from pathlib import Path
 from typing import MutableMapping
-import urllib.error
-import urllib.request
 
 try:
     import psycopg
@@ -21,6 +19,13 @@ try:  # Optional adapter for pgvector
     from psycopg.types.pgvector import Vector as PgVector
 except ImportError:  # pragma: no cover - pgvector extra is optional
     PgVector = None
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError as exc:  # pragma: no cover - import guard
+    raise SystemExit(
+        "sentence-transformers is required. Install it with 'pip install sentence-transformers'"
+    ) from exc
 
 
 DEFAULT_JSON_PATH = Path(__file__).with_name("topics.json")
@@ -43,38 +48,34 @@ class EmbeddingError(RuntimeError):
     """Raised when the embedding service fails."""
 
 
-class OllamaEmbeddingClient:
-    def __init__(self, base_url: str, model: str, timeout: float, expected_dim: int) -> None:
-        self.base_url = base_url.rstrip("/")
-        self.model = model
-        self.timeout = timeout
+class SentenceTransformerClient:
+    """Wrapper around SentenceTransformer with dimension validation."""
+
+    def __init__(
+        self,
+        model_name: str,
+        device: str,
+        expected_dim: int,
+        trust_remote_code: bool,
+    ) -> None:
+        self.model_name = model_name
+        self.device = device
+        self.model = SentenceTransformer(
+            model_name,
+            device=device,
+            trust_remote_code=trust_remote_code,
+        )
         self.expected_dim: int | None = expected_dim if expected_dim > 0 else None
 
     def embed(self, text: str) -> list[float]:
-        payload = json.dumps({"model": self.model, "prompt": text}).encode("utf-8")
-        request = urllib.request.Request(
-            f"{self.base_url}/api/embeddings",
-            data=payload,
-            headers={"Content-Type": "application/json"},
-        )
+        vector = self.model.encode(
+            text,
+            convert_to_numpy=True,
+            normalize_embeddings=False,
+            show_progress_bar=False,
+        ).tolist()
 
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                data = json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:  # pragma: no cover - network error branch
-            detail = exc.read().decode("utf-8", "ignore")
-            raise EmbeddingError(
-                f"Embedding request failed with status {exc.code}: {detail.strip()}"
-            ) from exc
-        except urllib.error.URLError as exc:  # pragma: no cover - network error branch
-            raise EmbeddingError("Unable to contact embedding service") from exc
-
-        embedding = data.get("embedding")
-        if not isinstance(embedding, list):
-            raise EmbeddingError("Embedding response missing 'embedding' array")
-
-        vector = [float(value) for value in embedding]
-        if not all(math.isfinite(value) for value in vector):
+        if not all(isinstance(value, (float, int)) and math.isfinite(float(value)) for value in vector):
             raise EmbeddingError("Embedding contains non-finite values")
 
         if self.expected_dim is None:
@@ -84,7 +85,7 @@ class OllamaEmbeddingClient:
                 f"Embedding dimension {len(vector)} does not match expected {self.expected_dim}"
             )
 
-        return vector
+        return [float(value) for value in vector]
 
 
 def format_embedding(values: list[float]) -> object:
@@ -96,7 +97,7 @@ def format_embedding(values: list[float]) -> object:
 
 
 def prepare_payload(
-    topics: list[MutableMapping[str, str]], embedder: OllamaEmbeddingClient
+    topics: list[MutableMapping[str, str]], embedder: SentenceTransformerClient
 ) -> list[tuple[object, object, object, object, object]]:
     rows: list[tuple[object, object, object, object, object]] = []
 
@@ -135,7 +136,6 @@ def prepare_payload(
 def reset_and_insert_topics(
     conn: psycopg.Connection, payload: list[tuple[object, object, object, object, object]]
 ) -> int:
-    
     with conn.cursor() as cur:
         cur.execute("TRUNCATE TABLE topics RESTART IDENTITY CASCADE")
         if payload:
@@ -158,11 +158,28 @@ def main() -> None:
 
     topics = load_topics_from_file(DEFAULT_JSON_PATH)
 
-    embedder = OllamaEmbeddingClient(
-        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
-        model=os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text"),
-        timeout=float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "600")),
-        expected_dim=int(os.getenv("EMBEDDING_DIM", "0")),
+    embed_model = (
+        os.getenv("EMBEDDING_MODEL")
+        or os.getenv("OLLAMA_EMBED_MODEL")
+        or "nomic-ai/nomic-embed-text-v2-moe"
+    )
+
+    embed_device = os.getenv("EMBEDDING_DEVICE", "cpu")
+
+    expected_dimensions = int(
+        os.getenv("EMBEDDING_EXPECTED_DIMENSIONS", os.getenv("EMBEDDING_DIM", "0"))
+    )
+
+    embed_trust_remote_code = (
+        os.getenv("EMBEDDING_TRUST_REMOTE_CODE", "false").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
+
+    embedder = SentenceTransformerClient(
+        model_name=embed_model,
+        device=embed_device,
+        expected_dim=expected_dimensions,
+        trust_remote_code=embed_trust_remote_code,
     )
 
     payload = prepare_payload(topics, embedder)

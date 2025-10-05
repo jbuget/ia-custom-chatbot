@@ -1,6 +1,6 @@
 # IA Custom Chatbot API
 
-API FastAPI s'appuyant sur un modèle Ollama local pour répondre à la webapp Next.js.
+API FastAPI s'appuyant sur un modèle Ollama local pour le chat et sur sentence-transformers pour les embeddings.
 
 ## Démarrage
 
@@ -38,25 +38,31 @@ cp .env.example .env
 
 La réponse contient l'`conversation_id` (généré si absent) et le message de l'assistant. Les conversations sont actuellement conservées en mémoire pour faciliter le passage à une persistance réelle.
 
-## Ollama
+## Configuration des modèles
 
-- Le service contacte `http://localhost:11434` par défaut avec le modèle `gpt-oss:20b`.
-- Variables d'environnement disponibles :
-  - `OLLAMA_BASE_URL`
-  - `OLLAMA_MODEL`
-  - `OLLAMA_TIMEOUT_SECONDS`
-  - `DATABASE_URL`
-  - `EMBEDDING_MODEL`
-  - `EMBEDDING_TIMEOUT_SECONDS`
-  - `EMBEDDING_EXPECTED_DIMENSIONS`
-  - `RETRIEVER_TOP_K`
-  - `RETRIEVER_CONTEXT_CHAR_LIMIT`
-  - `CORS_ALLOW_ORIGINS`
-  - `CORS_ALLOW_METHODS`
-  - `CORS_ALLOW_HEADERS`
-  - `CORS_ALLOW_CREDENTIALS`
-- Assurez-vous que le serveur Ollama est lancé avant `uvicorn`, par exemple :
+- Chat : le service contacte `http://localhost:11434` par défaut avec le modèle `gpt-oss:20b` (Ollama).
+- Embeddings : calculés localement avec `sentence-transformers` (`nomic-ai/nomic-embed-text-v2` par défaut).
+
+Variables d'environnement principales :
+
+- `OLLAMA_BASE_URL`
+- `OLLAMA_MODEL`
+- `OLLAMA_TIMEOUT_SECONDS`
+- `DATABASE_URL`
+- `EMBEDDING_MODEL`
+- `EMBEDDING_DEVICE`
+- `EMBEDDING_TRUST_REMOTE_CODE`
+- `EMBEDDING_EXPECTED_DIMENSIONS`
+- `RETRIEVER_TOP_K`
+- `RETRIEVER_CONTEXT_CHAR_LIMIT`
+- `CORS_ALLOW_ORIGINS`
+- `CORS_ALLOW_METHODS`
+- `CORS_ALLOW_HEADERS`
+- `CORS_ALLOW_CREDENTIALS`
+
+Assurez-vous que :
 
 ```bash
-ollama run gpt-oss:20b --keepalive
+ollama run gpt-oss:20b --keepalive  # pour le chat
+pip install -r requirements.txt      # installe aussi sentence-transformers
 ```
