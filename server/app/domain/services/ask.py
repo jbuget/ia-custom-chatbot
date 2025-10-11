@@ -5,7 +5,7 @@ from typing import List
 from app.config import settings
 from app.domain.models.ask import AskDocument, AskRequest, AskResponse
 from app.domain.services.chat import LLMServiceError, request_ollama_chat
-from app.domain.services.embeddings import EmbeddingServiceError, request_embedding
+from app.infrastructure.embeddings import EmbeddingServiceError, request_embedding
 from app.infrastructure.repositories.topics import query_similar_topics
 
 
