@@ -4,5 +4,9 @@ pydantic>=2.0,<3
 httpx>=0.27,<1
 pydantic-settings>=2.0,<3
 psycopg[binary,pgvector,pool]>=3.1,<4
-sentence-transformers>=3.0,<4
 einops>=0.7,<1
+sentence-transformers>=3.0,<4
+
+# Force CPU-only PyTorch build (no CUDA)
+torch==2.4.1+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
